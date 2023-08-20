@@ -4,13 +4,6 @@
 - You are not allowed to add any additional HTML elements.
 - You are not allowed to use refs.
 
-# Demo video of the completed assigment:
-
-<video controls width="640" height="360">
-  <source src="frontend-assignment.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
-
 - Once the <Checkout /> component is mounted, load the products using the `getProducts` function.
 
 - Once all the data is successfully loaded, hide the loading icon.
@@ -23,6 +16,12 @@
   - For orders over $1000, apply a 10% discount to the order. Display the discount text only if a discount has been applied.
   - The total should reflect any discount that has been applied
   - All dollar amounts should be displayed to 2 decimal places
+
+---
+
+# It should look like this:
+
+<div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/856171416?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" style="position:absolute;top:0;left:0;width:100%;height:100%;" title="frontend-assignment"></iframe></div><script src="https://player.vimeo.com/api/player.js"></script>
 
 ---
 
