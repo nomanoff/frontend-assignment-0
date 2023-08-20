@@ -1,13 +1,13 @@
 # Assigment Requirements:
 
-- You are provided with an incomplete <Checkout /> component.
+- You are provided with an incomplete `<Checkout />` component.
 - You are not allowed to add any additional HTML elements.
 - You are not allowed to use refs.
 
-- Once the <Checkout /> component is mounted, load the products using the `getProducts` function.
+- Once the `<Checkout />` component is mounted, load the products using the `getProducts` function.
 
 - Once all the data is successfully loaded, hide the loading icon.
-- Render each product object as a <Product/> component, passing in the necessary props.
+- Render each product object as a `<Product/>` component, passing in the necessary props.
 - Implement the following functionality:
   - The add and remove buttons should adjust the ordered quantity of each product
   - The add and remove buttons should be enabled/disabled to ensure that the ordered quantity can’t be negative and can’t exceed the available count for that product.
