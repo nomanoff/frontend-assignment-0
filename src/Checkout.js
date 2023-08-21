@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import styles from "./Checkout.module.css";
 import { LoadingIcon } from "./Icons";
 import { getProducts } from "./dataService";
@@ -24,33 +25,57 @@ const Product = ({
   name,
   availableCount,
   price,
-  orderedQuantity,
-  total,
+  orderedQuantity = 0,
+  total = 0,
+  // add,
+  // subtract
 }) => {
+  let [o, setO] = useState(orderedQuantity);
+  let [t, setT] = useState(total);
+  const add = () => setO((q) => q++);
+  const subtract = () => setO((q) => q--);
+
+  const CURRENCY_FORMATTER = new Intl.NumberFormat(undefined, {
+    currency: "USD",
+    style: "currency",
+  });
+
   return (
     <tr>
       <td>{id}</td>
       <td>{name}</td>
       <td>{availableCount}</td>
       <td>${price}</td>
-      <td>{orderedQuantity}</td>
-      <td>${total}</td>
+      <td>{o}</td>
+      <td>${(price*o) > 0 && price*o}</td>
       <td>
-        <button className={styles.actionButton}>+</button>
-        <button className={styles.actionButton}>-</button>
+        <button onClick={() => CURRENCY_FORMATTER.format(setO(++t))} className={styles.actionButton}>
+          +
+        </button>
+        <button onClick={() => CURRENCY_FORMATTER.format(setO(--t))} className={styles.actionButton}>
+          -
+        </button>
       </td>
     </tr>
   );
 };
 
 const Checkout = () => {
+  const [products, setProducts] = useState(false);
+
+  useEffect(async () => {
+    const prods = await getProducts();
+    console.log(prods);
+    setProducts(prods);
+  }, []);
+
   return (
     <div>
       <header className={styles.header}>
         <h1>Checkout</h1>
       </header>
       <main>
-        <LoadingIcon />
+        {!products && <LoadingIcon />}
         <table className={styles.table}>
           <thead>
             <tr>
@@ -64,7 +89,21 @@ const Checkout = () => {
               <th></th>
             </tr>
           </thead>
-          <tbody>{/* Products should be rendered here */}</tbody>
+          <tbody>
+            {
+              /* Products should be rendered here */
+              products &&
+                products.map((product) => {
+                  return (
+                    <Product
+                      {...product}
+                      // add={add}
+                      // subtract={subtract}
+                    />
+                  );
+                })
+            }
+          </tbody>
         </table>
         <h2>Order summary</h2>
         <p>Discount: $ </p>
