@@ -1,23 +1,7 @@
 import styles from "./Checkout.module.css";
 import { LoadingIcon } from "./Icons";
 import { getProducts } from "./dataService";
-
-// Instructions:
-
-// You are provided with an incomplete <Checkout /> component.
-// You are not allowed to add any additional HTML elements.
-// You are not allowed to use refs.
-// Once the <Checkout /> component is mounted, load the products using the getProducts function.
-// Once all the data is successfully loaded, hide the loading icon.
-// Render each product object as a <Product/> component, passing in the necessary props.
-// Implement the following functionality:
-//  - The add and remove buttons should adjust the ordered quantity of each product
-//  - The add and remove buttons should be enabled/disabled to ensure that the ordered quantity can’t be negative and can’t exceed the available count for that product.
-//  - The total shown for each product should be calculated based on the ordered quantity and the price
-//  - The total in the order summary should be calculated
-//  - For orders over $1000, apply a 10% discount to the order. Display the discount text only if a discount has been applied.
-//  - The total should reflect any discount that has been applied
-//  - All dollar amounts should be displayed to 2 decimal places
+import React, { useState, useEffect } from "react";
 
 const Product = ({
   id,
@@ -26,6 +10,8 @@ const Product = ({
   price,
   orderedQuantity,
   total,
+  handleAdd,
+  handleRemove,
 }) => {
   return (
     <tr>
@@ -36,21 +22,95 @@ const Product = ({
       <td>{orderedQuantity}</td>
       <td>${total}</td>
       <td>
-        <button className={styles.actionButton}>+</button>
-        <button className={styles.actionButton}>-</button>
+        <button
+          className={styles.actionButton}
+          onClick={() => handleAdd(id)}
+          disabled={orderedQuantity >= availableCount}
+        >
+          +
+        </button>
+        <button
+          className={styles.actionButton}
+          onClick={() => handleRemove(id)}
+          disabled={orderedQuantity <= 0}
+        >
+          -
+        </button>
       </td>
+      <td>${price}</td>
+      <td>{orderedQuantity}</td>
+      <td>${total}</td>
     </tr>
   );
 };
 
 const Checkout = () => {
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    getProducts()
+      .then((data) => {
+        const initializedData = data.map((product) => ({
+          ...product,
+          orderedQuantity: product.orderedQuantity || 0,
+        }));
+        setProducts(initializedData);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error loading products:", error);
+        setIsLoading(false);
+      });
+  }, []);
+
+  const [orderSummary, setOrderSummary] = useState({
+    total: 0,
+    discount: 0,
+  });
+
+  useEffect(() => {
+    let total = 0;
+    products.forEach((product) => {
+      total += product.price * product.orderedQuantity;
+    });
+
+    let discount = 0;
+    if (total > 1000) {
+      discount = total * 0.1;
+    }
+
+    setOrderSummary({
+      total: total - discount,
+      discount,
+    });
+  }, [products]);
+
+  const handleAdd = (productId) => {
+    const updatedProducts = products.map((product) =>
+      product.id === productId
+        ? { ...product, orderedQuantity: product.orderedQuantity + 1 }
+        : product
+    );
+    setProducts(updatedProducts);
+  };
+
+  const handleRemove = (productId) => {
+    const updatedProducts = products.map((product) =>
+      product.id === productId
+        ? { ...product, orderedQuantity: product.orderedQuantity - 1 }
+        : product
+    );
+    setProducts(updatedProducts);
+  };
+
   return (
     <div>
       <header className={styles.header}>
         <h1>Checkout</h1>
       </header>
       <main>
-        <LoadingIcon />
+        {isLoading ? <LoadingIcon /> : null}
         <table className={styles.table}>
           <thead>
             <tr>
@@ -64,11 +124,27 @@ const Checkout = () => {
               <th></th>
             </tr>
           </thead>
-          <tbody>{/* Products should be rendered here */}</tbody>
+          <tbody>
+            {products.map((product) => (
+              <Product
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                availableCount={product.availableCount}
+                price={parseFloat(product.price).toFixed(2)}
+                orderedQuantity={product.orderedQuantity || 0}
+                total={(product.price * (product.orderedQuantity || 0)).toFixed(
+                  2
+                )}
+                handleAdd={() => handleAdd(product.id)}
+                handleRemove={() => handleRemove(product.id)}
+              />
+            ))}
+          </tbody>
         </table>
         <h2>Order summary</h2>
-        <p>Discount: $ </p>
-        <p>Total: $ </p>
+        <p>Discount: ${orderSummary.discount.toFixed(2)}</p>
+        <p>Total: ${orderSummary.total.toFixed(2)}</p>
       </main>
     </div>
   );
