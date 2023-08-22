@@ -20,39 +20,59 @@ import { getProducts } from "./dataService";
 //  - The total should reflect any discount that has been applied
 //  - All dollar amounts should be displayed to 2 decimal places
 
+const CURRENCY_FORMATTER = new Intl.NumberFormat(undefined, {
+  currency: "USD",
+  style: "currency",
+});
+
 const Product = ({
   id,
   name,
   availableCount,
   price,
   orderedQuantity = 0,
-  total = 0,
-  // add,
-  // subtract
+  total,
 }) => {
-  let [o, setO] = useState(orderedQuantity);
-  let [t, setT] = useState(total);
-  const add = () => setO((q) => q++);
-  const subtract = () => setO((q) => q--);
+  let [availables, setAvailables] = useState(availableCount);
+  let [orders, setOrders] = useState(orderedQuantity);
 
-  const CURRENCY_FORMATTER = new Intl.NumberFormat(undefined, {
-    currency: "USD",
-    style: "currency",
-  });
+  const add = () => {
+    if (availables > 0) {
+      setAvailables(--availables);
+      setOrders(++orders);
+      total(price, 1);
+    }
+  };
+
+  const cancel = () => {
+    if (orders > 0) {
+      setAvailables(++availables);
+      setOrders(--orders);
+      total(price, 0);
+    }
+  };
 
   return (
     <tr>
       <td>{id}</td>
       <td>{name}</td>
-      <td>{availableCount}</td>
-      <td>${price}</td>
-      <td>{o}</td>
-      <td>${(price*o) > 0 && price*o}</td>
+      <td>{availables}</td>
+      <td>{CURRENCY_FORMATTER.format(price)}</td>
+      <td>{orders}</td>
+      <td>{CURRENCY_FORMATTER.format(orders * price)}</td>
       <td>
-        <button onClick={() => CURRENCY_FORMATTER.format(setO(++t))} className={styles.actionButton}>
+        <button
+          disabled={availables <= 0}
+          onClick={add}
+          className={styles.actionButton}
+        >
           +
         </button>
-        <button onClick={() => CURRENCY_FORMATTER.format(setO(--t))} className={styles.actionButton}>
+        <button
+          disabled={orders <= 0}
+          onClick={cancel}
+          className={styles.actionButton}
+        >
           -
         </button>
       </td>
@@ -62,10 +82,19 @@ const Product = ({
 
 const Checkout = () => {
   const [products, setProducts] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [discount, setDiscount] = useState(0);
+
+  const calculateTotal = (price, status) => {
+    if (status) {
+      setTotal(total + price);
+    } else {
+      setTotal(total - price);
+    }
+  };
 
   useEffect(async () => {
     const prods = await getProducts();
-    console.log(prods);
     setProducts(prods);
   }, []);
 
@@ -96,9 +125,9 @@ const Checkout = () => {
                 products.map((product) => {
                   return (
                     <Product
+                      key={product.id}
                       {...product}
-                      // add={add}
-                      // subtract={subtract}
+                      total={calculateTotal}
                     />
                   );
                 })
@@ -106,8 +135,14 @@ const Checkout = () => {
           </tbody>
         </table>
         <h2>Order summary</h2>
-        <p>Discount: $ </p>
-        <p>Total: $ </p>
+        <p>
+          Discount:{" "}
+          {CURRENCY_FORMATTER.format(total > 1000 ? total * 0.1 : 0)}{" "}
+        </p>
+        <p>
+          Total:{" "}
+          {CURRENCY_FORMATTER.format(discount > 0 ? total - discount : total)}
+        </p>
       </main>
     </div>
   );
